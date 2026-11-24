@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RED La Célula - Unidad 2 | 4° Grado Ciencias Naturales</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ========== PANTALLA DE AUTENTICACIÓN ========== -->
+  <div id="auth-screen" class="auth-container">
+    <div class="auth-card">
+      <h1>🧬 RED La Célula</h1>
+      <p class="subtitle">Unidad 2 - Ciencias Naturales | 4° Grado</p>
+      
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Registrarse</button>
+      </div>
+
+      <!-- Formulario Login -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>📧 Correo Electrónico</label>
+          <input type="email" id="login-email" required placeholder="estudiante@escuela.edu.pa">
+        </div>
+        <div class="form-group">
+          <label>🔒 Contraseña</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary">🚀 Entrar al RED</button>
+        <div id="login-message" class="auth-message"></div>
+      </form>
+
+      <!-- Formulario Registro -->
+      <form id="register-form" style="display:none;" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>👤 Nombre Completo</label>
+          <input type="text" id="reg-name" required placeholder="Tu nombre completo">
+        </div>
+        <div class="form-group">
+          <label>🏫 Escuela</label>
+          <input type="text" id="reg-school" required placeholder="Nombre de tu escuela">
+        </div>
+        <div class="form-group">
+          <label>📧 Correo Electrónico</label>
+          <input type="email" id="reg-email" required placeholder="estudiante@escuela.edu.pa">
+        </div>
+        <div class="form-group">
+          <label>🔒 Contraseña (mín. 6 caracteres)</label>
+          <input type="password" id="reg-password" required minlength="6" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary">📝 Crear Cuenta</button>
+        <div id="register-message" class="auth-message"></div>
+      </form>
+
+      <div style="margin-top: 20px; text-align: center; font-size: 0.85em; color: var(--text-light);">
+        <p>📚 Basado en el libro oficial MEDUCA - Panamá</p>
+        <p>🎯 Modelo COdA - Recurso Educativo Digital</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== APLICACIÓN PRINCIPAL ========== -->
+  <div id="app-container" class="app-container">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">🧬 RED La Célula</div>
+      <div class="user-info">
+        <div class="user-stats">
+          <span class="stat-badge">⭐ <span id="user-points">0</span> pts</span>
+          <span class="stat-badge">🏆 Nivel <span id="user-level">1</span></span>
+          <span class="stat-badge">🎖️ <span id="user-badges">0</span> badges</span>
+        </div>
+        <div class="user-avatar" id="user-avatar">E</div>
+        <button class="btn btn-secondary" onclick="handleLogout()" style="padding: 8px 15px; font-size: 0.9em;">🚪 Salir</button>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <button class="nav-btn active" onclick="showSection('dashboard')">🏠 Inicio</button>
+      <button class="nav-btn" onclick="showSection('activities')">🎮 Actividades</button>
+      <button class="nav-btn" onclick="showSection('content')">📖 Contenido</button>
+      <button class="nav-btn" onclick="showSection('leaderboard')">🏆 Rankings</button>
+      <button class="nav-btn" onclick="showSection('badges')">🎖️ Logros</button>
+      <button class="nav-btn" onclick="showSection('progress')">📊 Mi Progreso</button>
+      <button class="nav-btn" onclick="showSection('credits')">ℹ️ Créditos</button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- SECCIÓN: Dashboard -->
+      <section id="section-dashboard" class="section active">
+        <div class="welcome-section">
+          <h2>¡Bienvenido/a, <span id="welcome-name">Estudiante</span>! 🎉</h2>
+          <p style="font-size: 1.1em; color: var(--text-light); margin-bottom: 20px;">
+            Explora el fascinante mundo de la célula y completa las actividades interactivas.
+          </p>
+          
+          <h3 style="color: var(--primary-dark); margin: 20px 0 10px;">🎯 Objetivos de Aprendizaje</h3>
+          <ul class="objectives-list">
+            <li>✅ Concepto de célula y sus funciones.</li>
+            <li>✅ Elementos fundamentales de una célula y sus funciones.</li>
+            <li>✅ Niveles de organización de los seres vivos.</li>
+          </ul>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-activities">0</div>
+              <div class="stat-label">Actividades Completadas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-average">0%</div>
+              <div class="stat-label">Promedio General</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-badges">0</div>
+              <div class="stat-label">Badges Obtenidos</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-rank">-</div>
+              <div class="stat-label">Tu Ranking</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="color: var(--primary-dark); margin: 20px 0;">🎮 Actividades Disponibles</h3>
+        <div class="activities-grid" id="dashboard-activities"></div>
+      </section>
+
+      <!-- SECCIÓN: Actividades -->
+      <section id="section-activities" class="section">
+        <div class="activities-grid" id="all-activities-grid"></div>
+        
+        <!-- Contenedores de actividades individuales -->
+        <div id="activity-dragdrop-smallest" class="activity-view" style="display:none;"></div>
+        <div id="activity-dragdrop-cell" class="activity-view" style="display:none;"></div>
+        <div id="activity-puzzle" class="activity-view" style="display:none;"></div>
+        <div id="activity-memory" class="activity-view" style="display:none;"></div>
+        <div id="activity-hotspots" class="activity-view" style="display:none;"></div>
+        <div id="activity-wordsearch" class="activity-view" style="display:none;"></div>
+      </section>
+
+      <!-- SECCIÓN: Contenido Educativo -->
+      <section id="section-content" class="section">
+        <div class="activity-view">
+          <h2 style="color: var(--primary-dark); margin-bottom: 20px;">📖 La Célula - Unidad 2</h2>
+          
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>🔬 ¿Qué es la célula?</h3>
+            <p>La <strong>célula</strong> es la unidad básica de todos los seres vivos. Es la parte más pequeña que puede realizar todas las funciones necesarias para la vida. Algunos organismos tienen una sola célula (unicelulares) y otros tienen muchas (pluricelulares).</p>
+          </div>
+
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>🧬 Partes de la célula</h3>
+            <ul style="margin-left: 20px; line-height: 2;">
+              <li><strong>Núcleo:</strong> Controla todas las actividades de la célula. Contiene el ADN.</li>
+              <li><strong>Membrana celular:</strong> Protege la célula y controla qué entra y sale.</li>
+              <li><strong>Citoplasma:</strong> Sustancia gelatinosa que sostiene los organelos.</li>
+              <li><strong>Mitocondria:</strong> Produce la energía que la célula necesita (ATP).</li>
+              <li><strong>Ribosomas:</strong> Fabrican las proteínas.</li>
+            </ul>
+          </div>
+
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>🌿🐸🦠 Niveles de organización</h3>
+            <p>Los seres vivos se organizan en diferentes niveles:</p>
+            <ul style="margin-left: 20px; line-height: 2;">
+              <li><strong>Célula →</strong> Unidad básica</li>
+              <li><strong>Tejido →</strong> Grupo de células similares</li>
+              <li><strong>Órgano →</strong> Grupo de tejidos</li>
+              <li><strong>Sistema →</strong> Grupo de órganos</li>
+              <li><strong>Organismo →</strong> Ser vivo completo</li>
+            </ul>
+          </div>
+
+          <!-- Video educativo embebido -->
+          <div style="margin: 25px 0;">
+            <h3>🎥 Video Educativo: La Célula</h3>
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; margin-top: 10px;">
+              <iframe 
+                src="https://www.youtube.com/embed/URUJD5NEXC8" 
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen
+                title="Video educativo sobre la célula">
+              </iframe>
+            </div>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-top: 8px;">
+              📹 Video educativo complementario (Creative Commons)
+            </p>
+          </div>
+
+          <!-- Audio narrativo -->
+          <div style="background: #F5EEF8; padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>🔊 Escucha la explicación</h3>
+            <audio controls style="width: 100%; margin-top: 10px;">
+              <source src="assets/audio/explicacion-celula.mp3" type="audio/mpeg">
+              Tu navegador no soporta audio HTML5.
+            </audio>
+            <p style="color: var(--text-light); font-size: 0.85em; margin-top: 8px;">
+              📝 Transcripción: La célula es la unidad más pequeña de los seres vivos...
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: Leaderboard -->
+      <section id="section-leaderboard" class="section">
+        <div class="leaderboard-container">
+          <h2 style="color: var(--primary-dark);">🏆 Tabla de Clasificación</h2>
+          <p style="color: var(--text-light);">Los mejores estudiantes del RED</p>
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Estudiante</th>
+                <th>Nivel</th>
+                <th>Puntuación Total</th>
+                <th>Actividades</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <tr><td colspan="5" style="text-align:center; color: var(--text-light);">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: Badges -->
+      <section id="section-badges" class="section">
+        <div class="activity-view">
+          <h2 style="color: var(--primary-dark);">🎖️ Tus Logros</h2>
+          <p style="color: var(--text-light);">Completa actividades para desbloquear badges</p>
+          <div class="badges-grid" id="badges-grid">
+            <!-- Se llena dinámicamente -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: Progreso -->
+      <section id="section-progress" class="section">
+        <div class="activity-view">
+          <h2 style="color: var(--primary-dark);">📊 Mi Progreso</h2>
+          <div id="progress-details">
+            <!-- Se llena dinámicamente -->
+          </div>
+          
+          <h3 style="margin-top: 30px; color: var(--primary-dark);">📝 Historial de Resultados</h3>
+          <table class="leaderboard-table" style="margin-top: 15px;">
+            <thead>
+              <tr>
+                <th>Actividad</th>
+                <th>Puntuación</th>
+                <th>Porcentaje</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="results-history">
+              <tr><td colspan="4" style="text-align:center;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: Créditos -->
+      <section id="section-credits" class="section">
+        <div class="activity-view">
+          <h2 style="color: var(--primary-dark);">ℹ️ Créditos y Referencias</h2>
+          
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>📚 Fuente Curricular</h3>
+            <p><strong>Libro:</strong> Ciencias Naturales - 4° Grado</p>
+            <p><strong>Institución:</strong> Ministerio de Educación de Panamá (MEDUCA)</p>
+            <p><strong>Unidad:</strong> Unidad 2 - La Célula</p>
+          </div>
+
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>🛠️ Herramientas Utilizadas</h3>
+            <ul style="margin-left: 20px; line-height: 2;">
+              <li>HTML5, CSS3, JavaScript (Vanilla)</li>
+              <li>Supabase (Autenticación y Base de Datos)</li>
+              <li>GitHub (Versionado y Despliegue)</li>
+              <li>Modelo COdA (Evaluación de Calidad)</li>
+            </ul>
+          </div>
+
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>📄 Licencia</h3>
+            <p>Este recurso educativo digital fue desarrollado con fines académicos. 
+            Todo material externo utilizado cuenta con licencia Creative Commons o es de dominio público.</p>
+            <p style="margin-top: 10px;"><strong>© 2026</strong> - Proyecto Final Multimedia II</p>
+          </div>
+
+          <div style="background: #FDEBD0; padding: 20px; border-radius: 12px; margin: 15px 0;">
+            <h3>📋 Autoevaluación COdA</h3>
+            <p>Este RED ha sido evaluado bajo los 10 criterios del Modelo COdA:</p>
+            <ul style="margin-left: 20px; line-height: 2;">
+              <li>✅ Objetivos y coherencia didáctica</li>
+              <li>✅ Calidad de los contenidos</li>
+              <li>✅ Capacidad de generar reflexión</li>
+              <li>✅ Interactividad y adaptabilidad</li>
+              <li>✅ Motivación</li>
+              <li>✅ Formato y diseño</li>
+              <li>✅ Usabilidad</li>
+              <li>✅ Accesibilidad</li>
+              <li>✅ Reusabilidad</li>
+              <li>✅ Interoperabilidad</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Audio Controls -->
+    <div class="audio-controls">
+      <button class="audio-btn" onclick="toggleAudio()" title="Silenciar/Activar audio">🔊</button>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/database.js"></script>
+  <script type="module" src="js/activities.js"></script>
+  <script type="module" src="js/app.js"></script>
+
+  <script>
+    // Funciones globales de autenticación
+    function switchAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (tab === 'login') {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+      } else {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const msgEl = document.getElementById('login-message');
+
+      msgEl.className = 'auth-message';
+      msgEl.textContent = 'Iniciando sesión...';
+
+      const result = await window.authManager.login(email, password);
+      
+      if (result.success) {
+        msgEl.className = 'auth-message success';
+        msgEl.textContent = '✅ ¡Bienvenido/a!';
+        setTimeout(() => showApp(), 1000);
+      } else {
+        msgEl.className = 'auth-message error';
+        msgEl.textContent = '❌ ' + result.error;
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value;
+      const school = document.getElementById('reg-school').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const msgEl = document.getElementById('register-message');
+
+      msgEl.className = 'auth-message';
+      msgEl.textContent = 'Creando cuenta...';
+
+      const result = await window.authManager.register(name, email, password, school);
+      
+      if (result.success) {
+        msgEl.className = 'auth-message success';
+        msgEl.textContent = '✅ ¡Cuenta creada! Revisa tu correo para verificar.';
+      } else {
+        msgEl.className = 'auth-message error';
+        msgEl.textContent = '❌ ' + result.error;
+      }
+    }
+
+    async function handleLogout() {
+      await window.authManager.logout();
+      document.getElementById('app-container').classList.remove('active');
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+
+    function showApp() {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-container').classList.add('active');
+      window.appManager?.init();
+    }
+
+    function showSection(sectionName) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      const section = document.getElementById(`section-${sectionName}`);
+      if (section) section.classList.add('active');
+      
+      event.target.classList.add('active');
+
+      // Cargar datos específicos
+      if (sectionName === 'leaderboard') window.appManager?.loadLeaderboard();
+      if (sectionName === 'badges') window.appManager?.loadBadges();
+      if (sectionName === 'progress') window.appManager?.loadProgress();
+    }
+
+    function toggleAudio() {
+      const btn = event.target;
+      btn.textContent = btn.textContent === '🔊' ? '🔇' : '🔊';
+    }
+
+    // Verificar sesión al cargar
+    window.addEventListener('load', async () => {
+      if (window.authManager?.isAuthenticated()) {
+        showApp();
+      }
+    });
+  </script>
+
+</body>
+</html>
